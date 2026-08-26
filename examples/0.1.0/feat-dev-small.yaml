@@ -1,0 +1,96 @@
+openawf: 0.1.0
+name: feat-dev-small
+summary: Take an approved plan and run it to a reviewed diff in an isolated worktree, then tear down.
+model: claude-sonnet-5
+
+start: worktree-setup
+orchestration:
+  worktree-setup: setup-stack
+  setup-stack: create-diff
+  create-diff: testing
+  testing:
+    pass: agentic-review
+    fail:
+      task: create-diff
+      retries: 2
+      session: resume
+  agentic-review:
+    pass: teardown-stack
+  teardown-stack: remove-worktree
+  remove-worktree: null
+
+tasks:
+  worktree-setup:
+    summary: Create an isolated git worktree for this task.
+    input:
+      type: object
+      properties:
+        plan:
+          type: string
+      required: [plan]
+    body: |
+      # Worktree Setup
+
+      Create a dedicated git worktree for this task, isolated from the main
+      checkout and any other in-flight work. Return the worktree path and the
+      plan unchanged so the following tasks can act on it.
+
+  setup-stack:
+    summary: Bring up a local stack scoped to this worktree.
+    body: |
+      # Setup Stack
+
+      Bring up a full local stack scoped entirely to this worktree through the
+      setup-stack port. The stack is self-contained and shares nothing with
+      other environments. If it fails it can be retried without recreating the
+      worktree. Return the stack details and the plan.
+
+  create-diff:
+    summary: Implement the plan against the worktree as a committed diff.
+    body: |
+      # Create Diff
+
+      Implement the approved plan against the isolated worktree, producing the
+      change as a diff committed to the task's branch. If this task received
+      test failures as input, correct the diff to address them. Return the diff.
+
+  testing:
+    summary: Run compile, unit, integration, and e2e checks on the diff.
+    outcomes: [pass, fail]
+    body: |
+      # Testing
+
+      Validate the diff through four checks in order: compile, unit tests,
+      integration tests, e2e tests. If any check fails, emit `fail` and return
+      the failures so the diff can be corrected. Only if all four pass, emit
+      `pass` and return the diff.
+
+  agentic-review:
+    summary: Review the passing diff for correctness and quality.
+    outcomes: [pass]
+    body: |
+      # Agentic Review
+
+      Review the diff for correctness, quality, and adherence to the plan.
+      Catch design problems, missed requirements, and risky changes that the
+      tests do not. Emit `pass` and return the diff.
+
+  teardown-stack:
+    summary: Tear down the stack brought up for this worktree.
+    body: |
+      # Teardown Stack
+
+      Tear down the stack through the teardown-stack port: stop its processes,
+      drop its database, and remove its generated config. Return confirmation.
+
+  remove-worktree:
+    summary: Remove the git worktree, leaving the branch intact.
+    body: |
+      # Remove Worktree
+
+      Remove the git worktree. This deletes the working checkout only; the
+      branch and its committed diff remain in the repository. Return confirmation.
+
+x-meta:
+  version: 1
+  hash: null
