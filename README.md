@@ -1,8 +1,8 @@
 # OpenAWF Specification
 
-The OpenAWF Specification (Open Agentic WorkFlow) defines a standard, tool-agnostic description for agentic workflows. A workflow is an FSM (finite-state machine) of tasks: the flow runs from a start task to a terminal one.
-
 Agentic workflow is a widely used term in industry with no shared meaning. Each harness and SDK defines its own: what a workflow is, how it is represented, how it is shared. Attempts at collaboration, like the Claude marketplace, stay bound to one tool. This absence of a standard holds back collaboration industry-wide, and within teams, where colleagues cannot readily share and collaborate easily on workflows they build.
+
+The OpenAWF Specification (Open Agentic WorkFlow) defines a standard, tool-agnostic description for agentic workflows. A workflow is an FSM (finite-state machine) of tasks: the flow runs from a start task to a terminal one.
 
 The standard defines an agentic workflow as a single, self-contained document, so anyone can share, render, version, and run it, independent of the tool that made it.
 
