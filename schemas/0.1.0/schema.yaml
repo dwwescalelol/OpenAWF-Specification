@@ -60,11 +60,34 @@ properties:
     additionalProperties:
       $ref: "#/$defs/mcpServer"
 
+  version:
+    description: The workflow's version (identity). A human version string.
+    type: string
+    minLength: 1
+
+  sha:
+    description: >-
+      Content hash of the workflow, algorithm-prefixed (e.g. sha256-...). null
+      until sealed. Recomputed to verify the content is unchanged.
+    $ref: "#/$defs/sha"
+
+  source:
+    description: >-
+      Where this workflow is fetched from (url, path, or registry id). Omitted
+      when the workflow is authored in place rather than referenced.
+    type: string
+    minLength: 1
+
   x-meta:
     description: Managed metadata. Ignored by execution; folded away on display.
     type: object
 
 $defs:
+
+  sha:
+    description: A content hash, algorithm-prefixed, or null until sealed.
+    type: [string, "null"]
+    pattern: "^(sha256|sha384|sha512)-.+"
 
   transition:
     description: >-
@@ -139,6 +162,19 @@ $defs:
     required: [body]
     additionalProperties: false
     properties:
+      version:
+        description: The task's version (identity). A human version string.
+        type: string
+        minLength: 1
+      sha:
+        description: Content hash of the task, algorithm-prefixed. null until sealed.
+        $ref: "#/$defs/sha"
+      source:
+        description: >-
+          Where this task is fetched from (url, path, or registry id). Omitted
+          when the task is authored in place.
+        type: string
+        minLength: 1
       summary:
         type: string
       input:
