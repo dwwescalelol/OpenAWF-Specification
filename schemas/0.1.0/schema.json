@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openawf.org/schemas/0.1.0/schema.yaml",
+  "title": "OpenAWF Workflow",
+  "description": "Structural schema for an OpenAWF workflow document. Non-normative: the specification prose is the source of truth. Some constraints (a start task that exists, edges that resolve to defined tasks, at least one terminal node) cannot be expressed here and are enforced by a conformant validator.",
+  "type": "object",
+  "required": [
+    "openawf",
+    "name",
+    "start",
+    "orchestration",
+    "tasks"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "openawf": {
+      "description": "The OpenAWF version this document is written against.",
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "string"
+    },
+    "model": {
+      "description": "The model every task runs on unless the task overrides it.",
+      "type": "string"
+    },
+    "start": {
+      "description": "The name of the task the flow begins at.",
+      "type": "string",
+      "minLength": 1
+    },
+    "orchestration": {
+      "description": "The task graph. Each key is a task name; its value is the node: the transition out of that task, plus optional per-node execution policy.",
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/transition"
+      }
+    },
+    "tasks": {
+      "description": "Task definitions keyed by name. Each entry is an inline task or a $ref to one.",
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/taskEntry"
+      }
+    },
+    "mcp": {
+      "description": "External MCP servers the workflow depends on, keyed by name. Declares the requirement; connection details (command, url, credentials) are resolved by the runner and are not part of the document.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/mcpServer"
+      }
+    },
+    "version": {
+      "description": "The workflow's version (identity). A human version string.",
+      "type": "string",
+      "minLength": 1
+    },
+    "sha": {
+      "description": "Content hash of the workflow, algorithm-prefixed (e.g. sha256-...). null until sealed. Recomputed to verify the content is unchanged.",
+      "$ref": "#/$defs/sha"
+    },
+    "source": {
+      "description": "Where this workflow is fetched from (url, path, or registry id). Omitted when the workflow is authored in place rather than referenced.",
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "sha": {
+      "description": "A content hash, algorithm-prefixed, or null until sealed.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^(sha256|sha384|sha512)-.+"
+    },
+    "transition": {
+      "description": "Where a task goes next. null ends the flow; an edge is an unconditional transition; an object mapping outcomes to edges is a branch. An edge is a task name, or an object naming the task with per-edge execution policy.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/edge"
+        },
+        {
+          "$ref": "#/$defs/branch"
+        }
+      ]
+    },
+    "edge": {
+      "description": "A single transition to a task. A bare string names the task; the object form names it under `task` and adds per-edge execution policy.",
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "required": [
+            "task"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "task": {
+              "description": "The task this edge transitions to.",
+              "type": "string",
+              "minLength": 1
+            },
+            "retries": {
+              "description": "Attempts after the first failure before the task fails hard. null (the default) retries indefinitely; 0 means a single attempt.",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "default": null
+            },
+            "session": {
+              "description": "How the task behaves when reached through this edge. \"fresh\" starts a new context; \"resume\" keeps the prior session's context.",
+              "type": "string",
+              "enum": [
+                "fresh",
+                "resume"
+              ],
+              "default": "fresh"
+            }
+          }
+        }
+      ]
+    },
+    "branch": {
+      "description": "A map from each emitted outcome to the edge it takes. \"task\" is reserved (it marks an edge object), so no outcome may be named task.",
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "not": {
+          "const": "task"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/edge"
+      }
+    },
+    "taskEntry": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/task"
+        },
+        {
+          "$ref": "#/$defs/ref"
+        }
+      ]
+    },
+    "ref": {
+      "description": "A reference to a task defined elsewhere (file path, URL, or id).",
+      "type": "object",
+      "required": [
+        "$ref"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "$ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "task": {
+      "description": "An inline task definition.",
+      "type": "object",
+      "required": [
+        "body"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "description": "The task's version (identity). A human version string.",
+          "type": "string",
+          "minLength": 1
+        },
+        "sha": {
+          "description": "Content hash of the task, algorithm-prefixed. null until sealed.",
+          "$ref": "#/$defs/sha"
+        },
+        "source": {
+          "description": "Where this task is fetched from (url, path, or registry id). Omitted when the task is authored in place.",
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string"
+        },
+        "input": {
+          "description": "JSON Schema the incoming data must satisfy. Absent when the task takes no input.",
+          "type": "object"
+        },
+        "output": {
+          "description": "JSON Schema the task's output must satisfy. Absent when unconstrained.",
+          "type": "object"
+        },
+        "model": {
+          "description": "Overrides the workflow model for this task.",
+          "type": "string"
+        },
+        "outcomes": {
+          "description": "The outcomes this task may emit. Absent or empty when the task does not branch.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "uses": {
+          "description": "Names of MCP servers (declared in the top-level mcp block) this task requires.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "body": {
+          "description": "The tool-agnostic prompt.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "mcpServer": {
+      "description": "A declared dependency on an external MCP server.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "transport": {
+          "description": "The MCP transport. A hint; connection details are resolved by the runner.",
+          "type": "string",
+          "enum": [
+            "stdio",
+            "http",
+            "sse"
+          ]
+        },
+        "tools": {
+          "description": "The tools this workflow uses from the server. \"*\" (the default when omitted) grants all of the server's tools.",
+          "oneOf": [
+            {
+              "const": "*"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            }
+          ],
+          "default": "*"
+        }
+      }
+    }
+  }
+}
