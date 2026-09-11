@@ -23,7 +23,7 @@ The Markdown is the source of truth. The JSON Schema validates structure; it can
 
 ## Design
 
-OpenAWF defines every part of a workflow in one file. The tasks, their orchestration, and everything each task depends on are declared in the document itself, whether that's an external MCP or a helper skill.
+OpenAWF defines every part of a workflow in one file. The tasks, their orchestration, and everything each task depends on are declared in the document itself.
 
 Three principles follow from this:
 

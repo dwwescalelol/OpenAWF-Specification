@@ -107,5 +107,3 @@ tasks:
       Remove the git worktree. This deletes the working checkout only; the
       branch and its committed diff remain in the repository. Return confirmation.
 
-x-meta:
-  sha: null

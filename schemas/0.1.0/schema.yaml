@@ -78,9 +78,6 @@ properties:
     type: string
     minLength: 1
 
-  x-meta:
-    description: Managed metadata. Ignored by execution; folded away on display.
-    type: object
 
 $defs:
 
@@ -206,8 +203,6 @@ $defs:
         description: The tool-agnostic prompt.
         type: string
         minLength: 1
-      x-meta:
-        type: object
 
   mcpServer:
     description: A declared dependency on an external MCP server.
