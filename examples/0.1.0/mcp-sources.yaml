@@ -1,0 +1,123 @@
+openawf: 0.1.0
+name: api-regression
+summary: Bring up a stack, run the API suite against it, triage failures, and report.
+model: claude-sonnet-5
+version: 0.1.0
+sha: null
+
+secrets:
+  POSTMAN_API_KEY:
+    summary: Postman API key with access to the team workspace.
+  ACME_TOKEN:
+    summary: Token for the internal Acme API.
+
+mcp:
+  # Public npm package. Entrypoint is the package's bin.
+  postman:
+    source: pkg:npm/%40postman/postman-mcp-server@2.13.0
+    env:
+      POSTMAN_API_KEY: "${secrets.POSTMAN_API_KEY}"
+    tools: [getCollections, runCollection]
+    sha: null
+
+  # Public PyPI package. Entrypoint is the package's console script.
+  search:
+    source: pkg:pypi/acme-search-mcp@0.9.1
+    args: [--index, code]
+    tools: [search]
+    sha: null
+
+  # Private npm package on GitHub Packages.
+  connectors:
+    source: pkg:npm/%40acme/connectors-mcp@1.4.0?repository_url=https://npm.pkg.github.com
+    tools: [fetch_invoice]
+    sha: null
+
+  # Private OCI image, pinned by digest. Entrypoint is the image's ENTRYPOINT.
+  stack:
+    source: pkg:oci/stack-mcp@sha256%3A9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08?repository_url=ghcr.io/acme/stack-mcp
+    tools: [setup, teardown]
+    sha: null
+
+  # Git subdirectory at a commit. No entrypoint metadata, so command is required.
+  triage:
+    source: pkg:github/acme/monorepo@4f2a9c1e8b7d6a5f4e3d2c1b0a9f8e7d6c5b4a39#packages/triage-mcp
+    command: npm ci && npm run build && node dist/index.js
+    tools: [classify_failure]
+    sha: null
+
+  # MCPB bundle from a release, integrity-checked by the checksum qualifier.
+  reports:
+    source: pkg:generic/acme-reports@1.0.0?download_url=https://github.com/acme/reports-mcp/releases/download/v1.0.0/reports.mcpb&checksum=sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae
+    tools: [write_report]
+    sha: null
+
+  # Remote with no credential, or with OAuth discovered from the server.
+  deepwiki:
+    source: https://mcp.deepwiki.com/mcp
+    tools: [ask_question]
+    sha: null
+
+  # Remote with a static credential.
+  internal-api:
+    source: https://mcp.acme.internal/mcp
+    headers:
+      Authorization: "Bearer ${secrets.ACME_TOKEN}"
+    tools: [query]
+    sha: null
+
+start: setup-stack
+orchestration:
+  setup-stack: run-suite
+  run-suite:
+    pass: report
+    fail: triage
+  triage: report
+  report: teardown-stack
+  teardown-stack: null
+
+tasks:
+  setup-stack:
+    summary: Bring up an isolated stack for the run.
+    uses: [stack]
+    body: |
+      # Setup Stack
+
+      Bring up an isolated stack with the setup tool. Return its base URL.
+
+  run-suite:
+    summary: Run the API regression collection against the stack.
+    outcomes: [pass, fail]
+    uses: [postman]
+    body: |
+      # Run Suite
+
+      Run the regression collection against the stack's base URL. Emit `pass`
+      if every request passes. Otherwise emit `fail` and return the failures.
+
+  triage:
+    summary: Classify each failure and gather context.
+    uses: [triage, search, connectors, deepwiki, internal-api]
+    body: |
+      # Triage
+
+      Classify each failure as a regression, a flaky test, or an environment
+      fault. For regressions, find the related code, the affected invoice
+      data, and any upstream documentation. Return the classified failures.
+
+  report:
+    summary: Write the run report.
+    uses: [reports]
+    body: |
+      # Report
+
+      Write a report of the run: the result, and for each failure its
+      classification and context.
+
+  teardown-stack:
+    summary: Tear down the stack.
+    uses: [stack]
+    body: |
+      # Teardown Stack
+
+      Tear down the stack with the teardown tool. Return confirmation.
