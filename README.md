@@ -31,6 +31,11 @@ Three principles follow from this:
 - **Tasks are atomic, reusable units.** A task is defined once and usable across many workflows.
 - **Tasks and workflows are versioned and signable.** Every task/workflow has an identity, so what an agent produced can be traced to the exact version that produced it.
 
+## Examples
+
+- [feat-dev-small](examples/0.1.0/feat-dev-small.yaml): a plan run to a reviewed diff in an isolated worktree.
+- [mcp-sources](examples/0.1.0/mcp-sources.yaml): every MCP source form: public and private npm, PyPI, OCI by digest, a git subdirectory, an MCPB bundle, and remote servers with and without a credential.
+
 ## License
 
 Apache 2.0. See [LICENSE](LICENSE).
