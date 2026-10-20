@@ -265,8 +265,12 @@ $defs:
           type: string
           minLength: 1
         uniqueItems: true
+      system:
+        description: Standing instructions for the agent, in Markdown.
+        type: string
+        minLength: 1
       body:
-        description: The tool-agnostic prompt.
+        description: The request for this step, in Markdown.
         type: string
         minLength: 1
 
