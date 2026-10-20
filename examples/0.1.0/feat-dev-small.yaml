@@ -2,6 +2,9 @@ openawf: 0.1.0
 name: feat-dev-small
 summary: Take an approved plan and run it to a reviewed diff in an isolated worktree, then tear down.
 model: claude-sonnet-5
+metadata:
+  tags: [development, review]
+  authors: [OpenAWF]
 version: 0.3.0
 sha: sha256-1a49a9a0c0c2b0b7a3e5f9d8c7b6a5f4e3d2c1b0f1e2d3c4b5a6978869504132
 

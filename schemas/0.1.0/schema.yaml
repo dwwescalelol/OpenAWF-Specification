@@ -30,6 +30,9 @@ properties:
     description: The model every task runs on unless the task overrides it.
     type: string
 
+  metadata:
+    $ref: "#/$defs/metadata"
+
   start:
     description: The name of the task the flow begins at.
     type: string
@@ -82,6 +85,23 @@ properties:
 
 
 $defs:
+
+  metadata:
+    description: >-
+      Free keys describing the document, such as tags, authors and icon. Not
+      used by execution.
+    type: object
+    properties:
+      tags:
+        type: array
+        items:
+          type: string
+      authors:
+        type: array
+        items:
+          type: string
+      icon:
+        type: string
 
   sha:
     description: A content hash, algorithm-prefixed, or null until sealed.
@@ -189,6 +209,8 @@ $defs:
       model:
         description: Overrides the workflow model for this task.
         type: string
+      metadata:
+        $ref: "#/$defs/metadata"
       outcomes:
         description: The outcomes this task may emit. Absent or empty when the task does not branch.
         type: array
