@@ -36,6 +36,9 @@ properties:
   license:
     $ref: "#/$defs/license"
 
+  external-version:
+    $ref: "#/$defs/externalVersion"
+
   start:
     description: The name of the task the flow begins at.
     type: string
@@ -124,6 +127,13 @@ $defs:
 
   license:
     description: An SPDX license identifier, such as Apache-2.0.
+    type: string
+    minLength: 1
+
+  externalVersion:
+    description: >-
+      A version identifier assigned by an external tool, such as an n8n
+      versionId. Does not replace version or sha.
     type: string
     minLength: 1
 
@@ -237,6 +247,8 @@ $defs:
         $ref: "#/$defs/metadata"
       license:
         $ref: "#/$defs/license"
+      external-version:
+        $ref: "#/$defs/externalVersion"
       outcomes:
         description: The outcomes this task may emit. Absent or empty when the task does not branch.
         type: array
