@@ -33,6 +33,9 @@ properties:
   metadata:
     $ref: "#/$defs/metadata"
 
+  license:
+    $ref: "#/$defs/license"
+
   start:
     description: The name of the task the flow begins at.
     type: string
@@ -102,6 +105,11 @@ $defs:
           type: string
       icon:
         type: string
+
+  license:
+    description: An SPDX license expression, such as Apache-2.0.
+    type: string
+    minLength: 1
 
   sha:
     description: A content hash, algorithm-prefixed, or null until sealed.
@@ -211,6 +219,8 @@ $defs:
         type: string
       metadata:
         $ref: "#/$defs/metadata"
+      license:
+        $ref: "#/$defs/license"
       outcomes:
         description: The outcomes this task may emit. Absent or empty when the task does not branch.
         type: array
