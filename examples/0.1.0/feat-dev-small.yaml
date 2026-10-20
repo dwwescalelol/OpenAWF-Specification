@@ -1,7 +1,7 @@
 openawf: 0.1.0
 name: feat-dev-small
 summary: Take an approved plan and run it to a reviewed diff in an isolated worktree, then tear down.
-model: claude-sonnet-5
+model: anthropic/claude-sonnet-5
 metadata:
   tags: [development, review]
   authors: [OpenAWF]
@@ -83,6 +83,7 @@ tasks:
     version: 1.2.3
     sha: sha256-c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4
     summary: Review the passing diff for correctness and quality.
+    model: [anthropic/claude-opus-5-5, anthropic/claude-sonnet-5]
     outcomes: [pass]
     body: |
       # Agentic Review
