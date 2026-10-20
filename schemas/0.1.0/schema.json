@@ -104,7 +104,7 @@
       }
     },
     "license": {
-      "description": "An SPDX license expression, such as Apache-2.0.",
+      "description": "An SPDX license identifier, such as Apache-2.0.",
       "type": "string",
       "minLength": 1
     },
