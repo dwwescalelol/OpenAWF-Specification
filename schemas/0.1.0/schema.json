@@ -12,6 +12,9 @@
     "tasks"
   ],
   "additionalProperties": false,
+  "patternProperties": {
+    "^x-": {}
+  },
   "properties": {
     "openawf": {
       "description": "The OpenAWF version this document is written against.",
@@ -108,6 +111,9 @@
             "task"
           ],
           "additionalProperties": false,
+          "patternProperties": {
+            "^x-": {}
+          },
           "properties": {
             "task": {
               "description": "The task this edge transitions to.",
@@ -180,6 +186,9 @@
         "body"
       ],
       "additionalProperties": false,
+      "patternProperties": {
+        "^x-": {}
+      },
       "properties": {
         "version": {
           "description": "The task's version (identity). A human version string.",
