@@ -28,7 +28,16 @@ properties:
 
   model:
     description: The model every task runs on unless the task overrides it.
-    type: string
+    $ref: "#/$defs/model"
+
+  metadata:
+    $ref: "#/$defs/metadata"
+
+  license:
+    $ref: "#/$defs/license"
+
+  external-version:
+    $ref: "#/$defs/externalVersion"
 
   start:
     description: The name of the task the flow begins at.
@@ -82,6 +91,51 @@ properties:
 
 
 $defs:
+
+  metadata:
+    description: >-
+      Free keys describing the document, such as tags, authors and icon. Not
+      used by execution.
+    type: object
+    properties:
+      tags:
+        type: array
+        items:
+          type: string
+      authors:
+        type: array
+        items:
+          type: string
+      icon:
+        type: string
+
+  model:
+    description: >-
+      One model as provider/name, or a list of them to try in order.
+    oneOf:
+      - $ref: "#/$defs/modelName"
+      - type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          $ref: "#/$defs/modelName"
+
+  modelName:
+    description: A model as provider/name, such as anthropic/claude-sonnet-5.
+    type: string
+    pattern: "^[^/]+/.+$"
+
+  license:
+    description: An SPDX license identifier, such as Apache-2.0.
+    type: string
+    minLength: 1
+
+  externalVersion:
+    description: >-
+      A version identifier assigned by an external tool, such as an n8n
+      versionId. Does not replace version or sha.
+    type: string
+    minLength: 1
 
   sha:
     description: A content hash, algorithm-prefixed, or null until sealed.
@@ -188,7 +242,13 @@ $defs:
         type: object
       model:
         description: Overrides the workflow model for this task.
-        type: string
+        $ref: "#/$defs/model"
+      metadata:
+        $ref: "#/$defs/metadata"
+      license:
+        $ref: "#/$defs/license"
+      external-version:
+        $ref: "#/$defs/externalVersion"
       outcomes:
         description: The outcomes this task may emit. Absent or empty when the task does not branch.
         type: array
