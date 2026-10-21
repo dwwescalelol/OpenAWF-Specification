@@ -64,10 +64,11 @@ properties:
 
   mcp:
     description: >-
-      External MCP servers the workflow depends on, keyed by name. Declares the
-      requirement; connection details (command, url, credentials) are resolved
-      by the runner and are not part of the document.
+      Every MCP server the workflow's tasks call, keyed by server name.
+      Credentials appear only as ${NAME} placeholders.
     type: object
+    propertyNames:
+      pattern: "^[^/]+$"
     additionalProperties:
       $ref: "#/$defs/mcpServer"
 
@@ -258,8 +259,8 @@ $defs:
         uniqueItems: true
       uses:
         description: >-
-          Names of MCP servers (declared in the top-level mcp block) this task
-          requires.
+          The servers in mcp the task calls, and qualified tool names from
+          them.
         type: array
         items:
           type: string
@@ -270,19 +271,59 @@ $defs:
         type: string
         minLength: 1
 
-  mcpServer:
-    description: A declared dependency on an external MCP server.
+  stringMap:
     type: object
+    additionalProperties:
+      type: string
+
+  toolList:
+    type: array
+    items:
+      type: string
+      minLength: 1
+    uniqueItems: true
+
+  mcpServer:
+    description: >-
+      An MCP server the workflow's tasks call. stdio servers take command,
+      args and env. http and sse servers take url, headers and oauth.
+    type: object
+    required: [type]
     additionalProperties: false
+    patternProperties:
+      "^x-": {}
     properties:
-      transport:
-        description: The MCP transport. A hint; connection details are resolved by the runner.
+      type:
+        description: The MCP transport. http is Streamable HTTP.
         type: string
         enum: [stdio, http, sse]
-      tools:
+      command:
+        description: The executable that starts a stdio server.
+        type: string
+        minLength: 1
+      args:
+        description: Arguments passed to command.
+        type: array
+        items:
+          type: string
+      env:
         description: >-
-          The tools this workflow uses from the server. "*" (the default when
-          omitted) grants all of the server's tools.
+          Environment variables added to the runner's environment for the
+          server process. They override variables of the same name.
+        $ref: "#/$defs/stringMap"
+      url:
+        description: The endpoint of an http or sse server.
+        type: string
+        minLength: 1
+      headers:
+        description: HTTP headers sent with every request.
+        $ref: "#/$defs/stringMap"
+      oauth:
+        $ref: "#/$defs/oauth"
+      allow:
+        description: >-
+          The tools the workflow may call. "*" (the default when omitted)
+          allows every tool the server offers.
         oneOf:
           - const: "*"
           - type: array
@@ -290,4 +331,61 @@ $defs:
               type: string
               minLength: 1
             uniqueItems: true
+            minItems: 1
         default: "*"
+      deny:
+        description: The tools the workflow must not call.
+        $ref: "#/$defs/toolList"
+      timeout:
+        description: The longest one tool call may run, in milliseconds.
+        type: integer
+        minimum: 1
+    not:
+      required: [allow, deny]
+    allOf:
+      - if:
+          properties:
+            type:
+              const: stdio
+        then:
+          required: [command]
+          not:
+            anyOf:
+              - required: [url]
+              - required: [headers]
+              - required: [oauth]
+        else:
+          required: [url]
+          not:
+            anyOf:
+              - required: [command]
+              - required: [args]
+              - required: [env]
+
+  oauth:
+    description: OAuth client settings for an http or sse server.
+    type: object
+    additionalProperties: false
+    properties:
+      client-id:
+        description: The client ID registered with the authorization server.
+        type: string
+        minLength: 1
+      scopes:
+        description: The scopes to request.
+        type: array
+        items:
+          type: string
+          minLength: 1
+        uniqueItems: true
+      callback-port:
+        description: The local port of the redirect URI http://localhost:<port>/callback.
+        type: integer
+        minimum: 1
+        maximum: 65535
+      metadata-url:
+        description: >-
+          The authorization server's metadata URL. The runner uses it instead
+          of discovering the metadata.
+        type: string
+        minLength: 1
