@@ -65,7 +65,7 @@ properties:
   mcp:
     description: >-
       Every MCP server the workflow's tasks call, keyed by server name.
-      Credentials appear only as ${NAME} references.
+      Credentials appear only as ${NAME} placeholders.
     type: object
     propertyNames:
       pattern: "^[^/]+$"
@@ -259,8 +259,8 @@ $defs:
         uniqueItems: true
       uses:
         description: >-
-          The servers in the top-level mcp block this task calls, and single
-          tools from them written <server>/<tool>.
+          The servers in mcp the task calls, and qualified tool names from
+          them.
         type: array
         items:
           type: string
@@ -307,7 +307,9 @@ $defs:
         items:
           type: string
       env:
-        description: Environment variables set for the server process.
+        description: >-
+          Environment variables added to the runner's environment for the
+          server process. They override variables of the same name.
         $ref: "#/$defs/stringMap"
       url:
         description: The endpoint of an http or sse server.
@@ -324,7 +326,12 @@ $defs:
           allows every tool the server offers.
         oneOf:
           - const: "*"
-          - $ref: "#/$defs/toolList"
+          - type: array
+            items:
+              type: string
+              minLength: 1
+            uniqueItems: true
+            minItems: 1
         default: "*"
       deny:
         description: The tools the workflow must not call.
@@ -377,6 +384,8 @@ $defs:
         minimum: 1
         maximum: 65535
       metadata-url:
-        description: The authorization server's metadata URL. Replaces discovery.
+        description: >-
+          The authorization server's metadata URL. The runner uses it instead
+          of discovering the metadata.
         type: string
         minLength: 1
