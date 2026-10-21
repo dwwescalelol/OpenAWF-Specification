@@ -18,6 +18,8 @@ orchestration:
 tasks:
   gather:
     summary: Collect the diff and the review guidelines.
+    max-turns: 20
+    timeout: 300000
     uses: [github/get_pull_request, github/get_pull_request_diff, files]
     input:
       type: object
