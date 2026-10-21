@@ -1,0 +1,68 @@
+openawf: 0.1.0
+name: pr-review
+summary: Review a pull request against the repository's review guidelines and post the findings.
+model: anthropic/claude-sonnet-5
+license: Apache-2.0
+version: 0.1.0
+sha: null
+
+start: gather
+orchestration:
+  gather: review
+  review:
+    pass: approve
+    changes: comment
+  approve: null
+  comment: null
+
+tasks:
+  gather:
+    summary: Collect the diff and the review guidelines.
+    uses: [github/get_pull_request, github/get_pull_request_diff, files]
+    body: |
+      # Gather
+
+      Read the pull request and its diff. Read REVIEW.md at the repository
+      root. Return the diff and the guidelines.
+
+  review:
+    summary: Judge the diff against the guidelines.
+    outcomes: [pass, changes]
+    body: |
+      # Review
+
+      Check the diff against each guideline. Emit `pass` when every guideline
+      is met. Otherwise emit `changes` and return the unmet guidelines with
+      the lines involved.
+
+  approve:
+    summary: Approve the pull request.
+    uses: [github/create_pull_request_review]
+    body: |
+      # Approve
+
+      Approve the pull request with a one-line summary of what was checked.
+
+  comment:
+    summary: Request changes with the review notes.
+    uses: [github/create_pull_request_review]
+    body: |
+      # Comment
+
+      Submit a review that requests changes. List each unmet guideline with
+      the lines involved.
+
+mcp:
+  github:
+    type: http
+    url: https://api.githubcopilot.com/mcp/
+    headers:
+      Authorization: "Bearer ${GITHUB_TOKEN}"
+    allow: [get_pull_request, get_pull_request_diff, create_pull_request_review]
+    timeout: 60000
+
+  files:
+    type: stdio
+    command: npx
+    args: [-y, "@modelcontextprotocol/server-filesystem", "${REPO_DIR}"]
+    allow: [read_file, list_directory]
