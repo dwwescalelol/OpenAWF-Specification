@@ -73,6 +73,9 @@ mcp:
 
   files:
     type: stdio
-    command: npx
-    args: [-y, "@modelcontextprotocol/server-filesystem", "${REPO_DIR}"]
+    package:
+      registry-type: npm
+      identifier: "@modelcontextprotocol/server-filesystem"
+      version: 2.0.0
+    args: ["${REPO_DIR}"]
     allow: [read_file, list_directory]
