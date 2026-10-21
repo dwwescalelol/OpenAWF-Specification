@@ -311,12 +311,12 @@
           "uniqueItems": true
         },
         "system": {
-          "description": "Standing instructions for the agent, in Markdown.",
+          "description": "Standing instructions for the agent, in Markdown. May reference input fields as {{field}}.",
           "type": "string",
           "minLength": 1
         },
         "body": {
-          "description": "The request for this step, in Markdown.",
+          "description": "The request for this step, in Markdown. May reference input fields as {{field}}.",
           "type": "string",
           "minLength": 1
         }
