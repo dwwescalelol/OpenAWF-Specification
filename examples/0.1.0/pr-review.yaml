@@ -36,7 +36,25 @@ tasks:
 
   review:
     summary: Judge the diff against the guidelines.
-    outcomes: [pass, changes]
+    outcomes:
+      pass:
+        type: object
+        properties:
+          summary: { type: string }
+        required: [summary]
+      changes:
+        type: object
+        properties:
+          unmet:
+            type: array
+            items:
+              type: object
+              properties:
+                guideline: { type: string }
+                file: { type: string }
+                reason: { type: string }
+              required: [guideline, file, reason]
+        required: [unmet]
     effort: high
     body: |
       # Review
