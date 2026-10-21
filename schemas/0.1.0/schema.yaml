@@ -414,6 +414,8 @@ $defs:
         description: The exact package version, or the image tag for oci.
         type: string
         minLength: 1
+        not:
+          const: latest
       file-sha256:
         description: The SHA-256 of the bundle file, in lowercase hex.
         type: string
