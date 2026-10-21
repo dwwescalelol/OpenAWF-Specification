@@ -388,8 +388,11 @@
           "type": "string",
           "minLength": 1
         },
+        "package": {
+          "$ref": "#/$defs/package"
+        },
         "args": {
-          "description": "Arguments passed to command.",
+          "description": "Arguments passed to the server.",
           "type": "array",
           "items": {
             "type": "string"
@@ -455,8 +458,17 @@
             }
           },
           "then": {
-            "required": [
-              "command"
+            "oneOf": [
+              {
+                "required": [
+                  "command"
+                ]
+              },
+              {
+                "required": [
+                  "package"
+                ]
+              }
             ],
             "not": {
               "anyOf": [
@@ -491,6 +503,11 @@
                 },
                 {
                   "required": [
+                    "package"
+                  ]
+                },
+                {
+                  "required": [
                     "args"
                   ]
                 },
@@ -504,6 +521,54 @@
           }
         }
       ]
+    },
+    "package": {
+      "description": "A published package that provides a stdio server. Fields follow a packages entry of the MCP Registry's server.json.",
+      "type": "object",
+      "required": [
+        "registry-type",
+        "identifier",
+        "version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "registry-type": {
+          "type": "string",
+          "enum": [
+            "npm",
+            "pypi",
+            "oci",
+            "mcpb"
+          ]
+        },
+        "identifier": {
+          "description": "The package name, the image name for oci, or the bundle's URL for mcpb.",
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "description": "The exact package version, or the image tag for oci.",
+          "type": "string",
+          "minLength": 1
+        },
+        "file-sha256": {
+          "description": "The SHA-256 of the bundle file, in lowercase hex.",
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "if": {
+        "properties": {
+          "registry-type": {
+            "const": "mcpb"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "file-sha256"
+        ]
+      }
     },
     "oauth": {
       "description": "OAuth client settings for an http or sse server.",
