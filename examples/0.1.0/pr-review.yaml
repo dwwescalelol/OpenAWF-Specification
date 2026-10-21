@@ -35,6 +35,7 @@ tasks:
   review:
     summary: Judge the diff against the guidelines.
     outcomes: [pass, changes]
+    effort: high
     body: |
       # Review
 
