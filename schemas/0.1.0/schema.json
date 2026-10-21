@@ -262,6 +262,12 @@
       "required": [
         "body"
       ],
+      "not": {
+        "required": [
+          "outcomes",
+          "output"
+        ]
+      },
       "additionalProperties": false,
       "patternProperties": {
         "^x-": {}
@@ -289,7 +295,7 @@
           "type": "object"
         },
         "output": {
-          "description": "JSON Schema the task's output must satisfy. Absent when unconstrained.",
+          "description": "JSON Schema the result of a task without outcomes must satisfy. Absent when unconstrained or when the task has outcomes.",
           "type": "object"
         },
         "model": {
@@ -320,13 +326,30 @@
           "$ref": "#/$defs/externalVersion"
         },
         "outcomes": {
-          "description": "The outcomes this task may emit. Absent or empty when the task does not branch.",
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
+          "description": "The outcomes this task may report, keyed by name, each with the JSON Schema of the data it returns. Absent when the task does not branch.",
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "minLength": 1,
+            "not": {
+              "const": "task"
+            }
           },
-          "uniqueItems": true
+          "additionalProperties": {
+            "type": "object",
+            "not": {
+              "properties": {
+                "properties": {
+                  "required": [
+                    "outcome"
+                  ]
+                }
+              },
+              "required": [
+                "properties"
+              ]
+            }
+          }
         },
         "uses": {
           "description": "The servers in mcp the task calls, and qualified tool names from them.",
