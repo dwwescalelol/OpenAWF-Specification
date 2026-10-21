@@ -256,6 +256,14 @@ $defs:
       effort:
         description: Overrides the workflow effort for this task.
         $ref: "#/$defs/effort"
+      max-turns:
+        description: The most turns one attempt at the task may take.
+        type: integer
+        minimum: 1
+      timeout:
+        description: The longest one attempt at the task may run, in milliseconds.
+        type: integer
+        minimum: 1
       metadata:
         $ref: "#/$defs/metadata"
       license:
