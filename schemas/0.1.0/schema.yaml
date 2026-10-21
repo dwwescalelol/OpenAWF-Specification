@@ -30,6 +30,10 @@ properties:
     description: The model every task runs on unless the task overrides it.
     $ref: "#/$defs/model"
 
+  effort:
+    description: The reasoning effort every task uses unless the task overrides it.
+    $ref: "#/$defs/effort"
+
   metadata:
     $ref: "#/$defs/metadata"
 
@@ -120,6 +124,11 @@ $defs:
         uniqueItems: true
         items:
           $ref: "#/$defs/modelName"
+
+  effort:
+    description: How much reasoning a model spends on a task.
+    type: string
+    enum: [low, medium, high]
 
   modelName:
     description: A model as provider/name, such as anthropic/claude-sonnet-5.
@@ -244,6 +253,9 @@ $defs:
       model:
         description: Overrides the workflow model for this task.
         $ref: "#/$defs/model"
+      effort:
+        description: Overrides the workflow effort for this task.
+        $ref: "#/$defs/effort"
       metadata:
         $ref: "#/$defs/metadata"
       license:
