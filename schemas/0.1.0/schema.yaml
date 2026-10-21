@@ -250,7 +250,7 @@ $defs:
         description: JSON Schema the incoming data must satisfy. Absent when the task takes no input.
         type: object
       output:
-        description: JSON Schema the task's output must satisfy. Absent when unconstrained.
+        description: JSON Schema the result of a task without outcomes must satisfy. Absent when unconstrained or when the task has outcomes.
         type: object
       model:
         description: Overrides the workflow model for this task.

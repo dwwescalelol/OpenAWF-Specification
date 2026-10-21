@@ -295,7 +295,7 @@
           "type": "object"
         },
         "output": {
-          "description": "JSON Schema the task's output must satisfy. Absent when unconstrained.",
+          "description": "JSON Schema the result of a task without outcomes must satisfy. Absent when unconstrained or when the task has outcomes.",
           "type": "object"
         },
         "model": {
