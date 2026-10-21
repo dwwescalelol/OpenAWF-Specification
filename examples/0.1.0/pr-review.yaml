@@ -19,10 +19,17 @@ tasks:
   gather:
     summary: Collect the diff and the review guidelines.
     uses: [github/get_pull_request, github/get_pull_request_diff, files]
+    input:
+      type: object
+      properties:
+        pull-request:
+          type: string
+          description: The URL of the pull request to review.
+      required: [pull-request]
     body: |
       # Gather
 
-      Read the pull request and its diff. Read REVIEW.md at the repository
+      Read the pull request {{pull-request}} and its diff. Read REVIEW.md at the repository
       root. Return the diff and the guidelines.
 
   review:
