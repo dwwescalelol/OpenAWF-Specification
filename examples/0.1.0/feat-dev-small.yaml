@@ -71,7 +71,17 @@ tasks:
     version: 2.1.0
     sha: sha256-b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3
     summary: Run compile, unit, integration, and e2e checks on the diff.
-    outcomes: [pass, fail]
+    outcomes:
+      pass:
+        type: object
+        properties:
+          diff: { type: string }
+        required: [diff]
+      fail:
+        type: object
+        properties:
+          errors: { type: array, items: { type: string } }
+        required: [errors]
     body: |
       # Testing
 
@@ -88,7 +98,12 @@ tasks:
     system: |
       You are a senior reviewer. Judge the diff against the plan, not your
       own preferences. Never edit the diff yourself.
-    outcomes: [pass]
+    outcomes:
+      pass:
+        type: object
+        properties:
+          diff: { type: string }
+        required: [diff]
     body: |
       # Agentic Review
 

@@ -18,16 +18,44 @@ orchestration:
 tasks:
   gather:
     summary: Collect the diff and the review guidelines.
+    max-turns: 20
+    timeout: 300000
     uses: [github/get_pull_request, github/get_pull_request_diff, files]
+    input:
+      type: object
+      properties:
+        pull-request:
+          type: string
+          description: The URL of the pull request to review.
+      required: [pull-request]
     body: |
       # Gather
 
-      Read the pull request and its diff. Read REVIEW.md at the repository
+      Read the pull request {{pull-request}} and its diff. Read REVIEW.md at the repository
       root. Return the diff and the guidelines.
 
   review:
     summary: Judge the diff against the guidelines.
-    outcomes: [pass, changes]
+    outcomes:
+      pass:
+        type: object
+        properties:
+          summary: { type: string }
+        required: [summary]
+      changes:
+        type: object
+        properties:
+          unmet:
+            type: array
+            items:
+              type: object
+              properties:
+                guideline: { type: string }
+                file: { type: string }
+                reason: { type: string }
+              required: [guideline, file, reason]
+        required: [unmet]
+    effort: high
     body: |
       # Review
 
@@ -63,6 +91,9 @@ mcp:
 
   files:
     type: stdio
-    command: npx
-    args: [-y, "@modelcontextprotocol/server-filesystem", "${REPO_DIR}"]
+    package:
+      registry-type: npm
+      identifier: "@modelcontextprotocol/server-filesystem"
+      version: 2.0.0
+    args: ["${REPO_DIR}"]
     allow: [read_file, list_directory]

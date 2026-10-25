@@ -32,6 +32,10 @@
       "description": "The model every task runs on unless the task overrides it.",
       "$ref": "#/$defs/model"
     },
+    "effort": {
+      "description": "The reasoning effort every task uses unless the task overrides it.",
+      "$ref": "#/$defs/effort"
+    },
     "metadata": {
       "$ref": "#/$defs/metadata"
     },
@@ -123,6 +127,15 @@
             "$ref": "#/$defs/modelName"
           }
         }
+      ]
+    },
+    "effort": {
+      "description": "How much reasoning a model spends on a task.",
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
       ]
     },
     "modelName": {
@@ -249,6 +262,12 @@
       "required": [
         "body"
       ],
+      "not": {
+        "required": [
+          "outcomes",
+          "output"
+        ]
+      },
       "additionalProperties": false,
       "patternProperties": {
         "^x-": {}
@@ -276,12 +295,26 @@
           "type": "object"
         },
         "output": {
-          "description": "JSON Schema the task's output must satisfy. Absent when unconstrained.",
+          "description": "JSON Schema the result of a task without outcomes must satisfy. Absent when unconstrained or when the task has outcomes.",
           "type": "object"
         },
         "model": {
           "description": "Overrides the workflow model for this task.",
           "$ref": "#/$defs/model"
+        },
+        "effort": {
+          "description": "Overrides the workflow effort for this task.",
+          "$ref": "#/$defs/effort"
+        },
+        "max-turns": {
+          "description": "The most turns one attempt at the task may take.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "timeout": {
+          "description": "The longest one attempt at the task may run, in milliseconds.",
+          "type": "integer",
+          "minimum": 1
         },
         "metadata": {
           "$ref": "#/$defs/metadata"
@@ -293,13 +326,30 @@
           "$ref": "#/$defs/externalVersion"
         },
         "outcomes": {
-          "description": "The outcomes this task may emit. Absent or empty when the task does not branch.",
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
+          "description": "The outcomes this task may report, keyed by name, each with the JSON Schema of the data it returns. Absent when the task does not branch.",
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "minLength": 1,
+            "not": {
+              "const": "task"
+            }
           },
-          "uniqueItems": true
+          "additionalProperties": {
+            "type": "object",
+            "not": {
+              "properties": {
+                "properties": {
+                  "required": [
+                    "outcome"
+                  ]
+                }
+              },
+              "required": [
+                "properties"
+              ]
+            }
+          }
         },
         "uses": {
           "description": "The servers in mcp the task calls, and qualified tool names from them.",
@@ -311,12 +361,12 @@
           "uniqueItems": true
         },
         "system": {
-          "description": "Standing instructions for the agent, in Markdown.",
+          "description": "Standing instructions for the agent, in Markdown. May reference input fields as {{field}}.",
           "type": "string",
           "minLength": 1
         },
         "body": {
-          "description": "The request for this step, in Markdown.",
+          "description": "The request for this step, in Markdown. May reference input fields as {{field}}.",
           "type": "string",
           "minLength": 1
         }
@@ -361,8 +411,11 @@
           "type": "string",
           "minLength": 1
         },
+        "package": {
+          "$ref": "#/$defs/package"
+        },
         "args": {
-          "description": "Arguments passed to command.",
+          "description": "Arguments passed to the server.",
           "type": "array",
           "items": {
             "type": "string"
@@ -428,8 +481,17 @@
             }
           },
           "then": {
-            "required": [
-              "command"
+            "oneOf": [
+              {
+                "required": [
+                  "command"
+                ]
+              },
+              {
+                "required": [
+                  "package"
+                ]
+              }
             ],
             "not": {
               "anyOf": [
@@ -464,6 +526,11 @@
                 },
                 {
                   "required": [
+                    "package"
+                  ]
+                },
+                {
+                  "required": [
                     "args"
                   ]
                 },
@@ -477,6 +544,57 @@
           }
         }
       ]
+    },
+    "package": {
+      "description": "A published package that provides a stdio server. Fields follow a packages entry of the MCP Registry's server.json.",
+      "type": "object",
+      "required": [
+        "registry-type",
+        "identifier",
+        "version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "registry-type": {
+          "type": "string",
+          "enum": [
+            "npm",
+            "pypi",
+            "oci",
+            "mcpb"
+          ]
+        },
+        "identifier": {
+          "description": "The package name, the image name for oci, or the bundle's URL for mcpb.",
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "description": "The exact package version, or the image tag for oci.",
+          "type": "string",
+          "minLength": 1,
+          "not": {
+            "const": "latest"
+          }
+        },
+        "file-sha256": {
+          "description": "The SHA-256 of the bundle file, in lowercase hex.",
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "if": {
+        "properties": {
+          "registry-type": {
+            "const": "mcpb"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "file-sha256"
+        ]
+      }
     },
     "oauth": {
       "description": "OAuth client settings for an http or sse server.",
