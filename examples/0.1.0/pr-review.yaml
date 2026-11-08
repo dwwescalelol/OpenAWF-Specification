@@ -28,6 +28,12 @@ tasks:
           type: string
           description: The URL of the pull request to review.
       required: [pull-request]
+    output:
+      type: object
+      properties:
+        diff: { type: string }
+        guidelines: { type: string }
+      required: [diff, guidelines]
     body: |
       # Gather
 
@@ -36,6 +42,12 @@ tasks:
 
   review:
     summary: Judge the diff against the guidelines.
+    input:
+      type: object
+      properties:
+        diff: { type: string }
+        guidelines: { type: string }
+      required: [diff, guidelines]
     outcomes:
       pass:
         type: object
